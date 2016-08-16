@@ -20,6 +20,6 @@
         "symfony/yaml"    : "~2.3|~3.0"
     },
     "autoload": {
-        "psr-4": { "EasyCorp\\EasyLog\\": "src" },
+        "psr-4": { "EasyCorp\\EasyLog\\": "src" }
     }
 }
