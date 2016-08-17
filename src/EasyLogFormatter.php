@@ -489,9 +489,15 @@ class EasyLogFormatter implements FormatterInterface
             return $variables;
         }
 
-        return array_filter($variables, function ($key) use ($string) {
-            return false === strpos($string, '{'.$key.'}');
-        }, ARRAY_FILTER_USE_KEY);
+        // array_filter() is not used because ARRAY_FILTER_USE_KEY requires PHP 5.6
+        $filteredVariables = array();
+        foreach ($variables as $key => $value) {
+            if (false === strpos($string, '{'.$key.'}')) {
+                $filteredVariables[$key] = $value;
+            }
+        }
+
+        return $filteredVariables;
     }
 
     /**
