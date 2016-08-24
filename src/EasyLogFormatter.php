@@ -13,14 +13,34 @@ use Symfony\Component\Yaml\Yaml;
  */
 class EasyLogFormatter implements FormatterInterface
 {
+    /**
+     * @var int
+     */
     private $maxLineLength = 100;
+
+    /**
+     * @var int
+     */
     private $prefixLength = 2;
 
+    /**
+     * @param array $record
+     *
+     * @throws \RuntimeException
+     */
     public function format(array $record)
     {
-        throw new \RuntimeException('The method "format()" should never be called (call "formatBatch()" instead).  Please read EasyLogHandler README instructions to learn how to configure and use it.');
+        throw new \RuntimeException(
+            'The method "format()" should never be called (call "formatBatch()" instead). '
+            . 'Please read EasyLogHandler README instructions to learn how to configure and use it.'
+        );
     }
 
+    /**
+     * @param array $records
+     *
+     * @return array
+     */
     public function formatBatch(array $records)
     {
         $logBatch = array('formatted' => '');
@@ -65,12 +85,22 @@ class EasyLogFormatter implements FormatterInterface
         return $logBatch;
     }
 
-    private function isAsseticLog($record)
+    /**
+     * @param array $record
+     *
+     * @return bool
+     */
+    private function isAsseticLog(array $record)
     {
         return isset($record['context']['route']) && 0 === strpos($record['context']['route'], '_assetic_');
     }
 
-    private function isDeprecationLog($record)
+    /**
+     * @param array $record
+     *
+     * @return bool
+     */
+    private function isDeprecationLog(array $record)
     {
         $isPhpChannel = 'php' === $record['channel'];
         $isDeprecationError = isset($record['context']['type']) && E_USER_DEPRECATED === $record['context']['type'];
@@ -79,17 +109,32 @@ class EasyLogFormatter implements FormatterInterface
         return $isPhpChannel && ($isDeprecationError || $looksLikeDeprecationMessage);
     }
 
-    private function isDoctrineLog($record)
+    /**
+     * @param array $record
+     *
+     * @return bool
+     */
+    private function isDoctrineLog(array $record)
     {
         return isset($record['channel']) && 'doctrine' === $record['channel'];
     }
 
-    private function isEventStopLog($record)
+    /**
+     * @param array $record
+     *
+     * @return bool
+     */
+    private function isEventStopLog(array $record)
     {
         return 'Listener "{listener}" stopped propagation of the event "{event}".' === $record['message'];
     }
 
-    private function isEventNotificationLog($record)
+    /**
+     * @param array $record
+     *
+     * @return bool
+     */
+    private function isEventNotificationLog(array $record)
     {
         $isEventNotifyChannel = isset($record['channel']) && '_event_notify' === $record['channel'];
         $isEventChannel = isset($record['channel']) && 'event' === $record['channel'];
@@ -98,15 +143,31 @@ class EasyLogFormatter implements FormatterInterface
         return $isEventNotifyChannel || ($isEventChannel && $contextIncludesEventNotification);
     }
 
-    private function isRouteMatchLog($record)
+    /**
+     * @param array $record
+     *
+     * @return bool
+     */
+    private function isRouteMatchLog(array $record)
     {
         return 'Matched route "{route}".' === $record['message'];
     }
 
-    private function isTranslationLog($record) {
+    /**
+     * @param array $record
+     *
+     * @return bool
+     */
+    private function isTranslationLog(array $record)
+    {
         return isset($record['channel']) && 'translation' === $record['channel'];
     }
 
+    /**
+     * @param array $records
+     *
+     * @return bool
+     */
     private function isWebDebugToolbarLog(array $records)
     {
         foreach ($records as $record) {
@@ -118,7 +179,12 @@ class EasyLogFormatter implements FormatterInterface
         return false;
     }
 
-    private function processDeprecationLogRecord($record)
+    /**
+     * @param array $record
+     *
+     * @return array
+     */
+    private function processDeprecationLogRecord(array $record)
     {
         $context = $record['context'];
 
@@ -130,7 +196,12 @@ class EasyLogFormatter implements FormatterInterface
         return $record;
     }
 
-    private function processDoctrineLogRecord($record)
+    /**
+     * @param array $record
+     *
+     * @return array
+     */
+    private function processDoctrineLogRecord(array $record)
     {
         if (!isset($record['context']) || empty($record['context'])) {
             return $record;
@@ -150,6 +221,7 @@ class EasyLogFormatter implements FormatterInterface
      *
      * @param array $records
      * @param int   $currentRecordIndex
+     *
      * @return string
      */
     private function processEventNotificationLogRecord(array $records, $currentRecordIndex)
@@ -168,7 +240,12 @@ class EasyLogFormatter implements FormatterInterface
         return $record;
     }
 
-    private function processEventStopLogRecord($record)
+    /**
+     * @param array $record
+     *
+     * @return array
+     */
+    private function processEventStopLogRecord(array $record)
     {
         $record['channel'] = '_event_stop';
         $record['message'] = 'Event "{event}" stopped by:';
@@ -176,7 +253,12 @@ class EasyLogFormatter implements FormatterInterface
         return $record;
     }
 
-    private function processRouteMatchLogRecord($record)
+    /**
+     * @param array $record
+     *
+     * @return array
+     */
+    private function processRouteMatchLogRecord(array $record)
     {
         if ($this->isAsseticLog($record)) {
             $record['message'] = '{method}: {request_uri}';
@@ -203,9 +285,10 @@ class EasyLogFormatter implements FormatterInterface
      *
      * @param string $string
      * @param array  $variables
+     *
      * @return string
      */
-    private function processStringPlaceholders($string, $variables)
+    private function processStringPlaceholders($string, array $variables)
     {
         foreach ($variables as $key => $value) {
             if (!is_string($value) && !is_numeric($value) && !is_bool($value)) {
@@ -224,6 +307,7 @@ class EasyLogFormatter implements FormatterInterface
      *
      * @param array $records
      * @param int   $currentRecordIndex
+     *
      * @return string
      */
     private function processTranslationLogRecord(array $records, $currentRecordIndex)
@@ -238,7 +322,12 @@ class EasyLogFormatter implements FormatterInterface
         return $record;
     }
 
-    private function formatLogChannel($record)
+    /**
+     * @param array $record
+     *
+     * @return string
+     */
+    private function formatLogChannel(array $record)
     {
         if (!isset($record['channel'])) {
             return '';
@@ -262,6 +351,11 @@ class EasyLogFormatter implements FormatterInterface
         return sprintf('%s%s', $channelIcon, strtoupper($channel));
     }
 
+    /**
+     * @param array $record
+     *
+     * @return string
+     */
     private function formatContext(array $record)
     {
         $context = $this->filterVariablesUsedAsPlaceholders($record['message'], $record['context']);
@@ -274,6 +368,11 @@ class EasyLogFormatter implements FormatterInterface
         return $contextAsString;
     }
 
+    /**
+     * @param array $record
+     *
+     * @return string
+     */
     private function formatExtra(array $record)
     {
         $extra = $this->formatDateTimeObjects($record['extra']);
@@ -283,12 +382,22 @@ class EasyLogFormatter implements FormatterInterface
         return $extraAsString;
     }
 
-    private function formatLogInfo($record)
+    /**
+     * @param array $record
+     *
+     * @return string
+     */
+    private function formatLogInfo(array $record)
     {
         return sprintf('%s%s', $this->formatLogLevel($record), $this->formatLogChannel($record));
     }
 
-    private function formatLogLevel($record)
+    /**
+     * @param array $record
+     *
+     * @return mixed|string
+     */
+    private function formatLogLevel(array $record)
     {
         if (!isset($record['level_name'])) {
             return '';
@@ -306,7 +415,12 @@ class EasyLogFormatter implements FormatterInterface
         return array_key_exists($level, $levelLabels) ? $levelLabels[$level] : $level. ' ';
     }
 
-    private function formatMessage($record)
+    /**
+     * @param array $record
+     *
+     * @return string
+     */
+    private function formatMessage(array $record)
     {
         $message = $this->processStringPlaceholders($record['message'], $record['context']);
         $message = $this->formatStringAsTextBlock($message);
@@ -314,6 +428,12 @@ class EasyLogFormatter implements FormatterInterface
         return $message;
     }
 
+    /**
+     * @param array $records
+     * @param int   $currentRecordIndex
+     *
+     * @return string
+     */
     private function formatRecord(array $records, $currentRecordIndex)
     {
         $record = $records[$currentRecordIndex];
@@ -355,7 +475,13 @@ class EasyLogFormatter implements FormatterInterface
         return $recordAsString;
     }
 
-    private function formatStackTrace($trace, $prefix = '')
+    /**
+     * @param array $trace
+     * @param string $prefix
+     *
+     * @return string
+     */
+    private function formatStackTrace(array $trace, $prefix = '')
     {
         $traceAsString = '';
         foreach ($trace as $line) {
@@ -377,6 +503,11 @@ class EasyLogFormatter implements FormatterInterface
         return $traceAsString;
     }
 
+    /**
+     * @param array $records
+     *
+     * @return string
+     */
     private function formatLogBatchHeader(array $records)
     {
         $firstRecord = $records[0];
@@ -391,6 +522,11 @@ class EasyLogFormatter implements FormatterInterface
         return $this->formatAsTitle($logDateAsString);
     }
 
+    /**
+     * @param string $text
+     *
+     * @return string
+     */
     private function formatAsTitle($text)
     {
         $titleLines = array();
@@ -402,6 +538,11 @@ class EasyLogFormatter implements FormatterInterface
         return implode(PHP_EOL, $titleLines).PHP_EOL;
     }
 
+    /**
+     * @param string $text
+     *
+     * @return string
+     */
     private function formatAsSubtitle($text)
     {
         $subtitle = str_pad('###  '.$text.'  ', $this->maxLineLength, '#', STR_PAD_BOTH);
@@ -409,6 +550,11 @@ class EasyLogFormatter implements FormatterInterface
         return $subtitle.PHP_EOL;
     }
 
+    /**
+     * @param string $text
+     *
+     * @return string
+     */
     private function formatAsSection($text)
     {
         $section = str_pad(str_repeat('_', 3).' '.$text.' ', $this->maxLineLength, '_', STR_PAD_RIGHT);
@@ -416,6 +562,11 @@ class EasyLogFormatter implements FormatterInterface
         return $section.PHP_EOL;
     }
 
+    /**
+     * @param string $string
+     *
+     * @return string
+     */
     private function formatStringAsTextBlock($string)
     {
         if (!is_string($string)) {
@@ -442,7 +593,7 @@ class EasyLogFormatter implements FormatterInterface
      *
      * @param string $text
      * @param string $prefix
-     * @param bool $prefixAllLines If false, prefix is only added to lines that don't start with white spaces
+     * @param bool   $prefixAllLines If false, prefix is only added to lines that don't start with white spaces
      *
      * @return string
      */
@@ -481,7 +632,8 @@ class EasyLogFormatter implements FormatterInterface
      * Turns any DateTime object present in the given array into a string
      * representation of that date and time.
      *
-     * @param  array  $array
+     * @param  array $array
+     *
      * @return array
      */
     private function formatDateTimeObjects(array $array)
@@ -501,6 +653,7 @@ class EasyLogFormatter implements FormatterInterface
      *
      * @param string $string
      * @param array  $variables
+     *
      * @return array
      */
     private function filterVariablesUsedAsPlaceholders($string, array $variables)
@@ -524,10 +677,11 @@ class EasyLogFormatter implements FormatterInterface
      * It returns the level at which YAML component inlines the values, which
      * determines how compact or readable the information is displayed.
      *
-     * @param $record
+     * @param array $record
+     *
      * @return int
      */
-    private function getInlineLevel($record)
+    private function getInlineLevel(array $record)
     {
         if ($this->isTranslationLog($record)) {
             return 0;
@@ -545,10 +699,11 @@ class EasyLogFormatter implements FormatterInterface
      * should be displayed. It returns false when a log is displayed in a compact
      * way to combine it with a similar previous record.
      *
-     * @param $record
+     * @param array $record
+     *
      * @return bool
      */
-    private function isLogInfoDisplayed($record)
+    private function isLogInfoDisplayed(array $record)
     {
         if (!isset($record['_properties']) || !isset($record['_properties']['display_log_info'])) {
             return true;
@@ -557,12 +712,23 @@ class EasyLogFormatter implements FormatterInterface
         return $record['_properties']['display_log_info'];
     }
 
-    private function arrayContainsOnlyNumericKeys($array)
+    /**
+     * @param array $array
+     *
+     * @return bool
+     */
+    private function arrayContainsOnlyNumericKeys(array $array)
     {
         return 0 === count(array_filter(array_keys($array), 'is_string'));
     }
 
-    private function makePathRelative($filePath) {
+    /**
+     * @param string $filePath
+     *
+     * @return mixed
+     */
+    private function makePathRelative($filePath)
+    {
         $thisFilePath = __FILE__;
         $thisFilePathParts = explode('/src/', $thisFilePath);
         $projectRootDir = $thisFilePathParts[0].DIRECTORY_SEPARATOR;
