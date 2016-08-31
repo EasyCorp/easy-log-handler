@@ -265,6 +265,7 @@ class EasyLogFormatter implements FormatterInterface
     private function formatContext(array $record)
     {
         $context = $this->filterVariablesUsedAsPlaceholders($record['message'], $record['context']);
+        $context = $this->formatDateTimeObjects($context);
 
         $contextAsString = Yaml::dump($context, $this->getInlineLevel($record), $this->prefixLength);
         $contextAsString = $this->formatTextBlock($contextAsString, '--> ');
@@ -275,7 +276,8 @@ class EasyLogFormatter implements FormatterInterface
 
     private function formatExtra(array $record)
     {
-        $extraAsString = Yaml::dump(array('extra' => $record['extra']), 1, $this->prefixLength);
+        $extra = $this->formatDateTimeObjects($record['extra']);
+        $extraAsString = Yaml::dump(array('extra' => $extra), 1, $this->prefixLength);
         $extraAsString = $this->formatTextBlock($extraAsString, '--> ');
 
         return $extraAsString;
@@ -473,6 +475,24 @@ class EasyLogFormatter implements FormatterInterface
         }
 
         return implode(PHP_EOL, $newTextLines).($addTrailingNewline ? PHP_EOL : '');
+    }
+
+    /**
+     * Turns any DateTime object present in the given array into a string
+     * representation of that date and time.
+     *
+     * @param  array  $array
+     * @return array
+     */
+    private function formatDateTimeObjects(array $array)
+    {
+        array_walk_recursive($array, function (&$value) {
+            if ($value instanceof \DateTimeInterface) {
+                $value = date_format($value, 'c');
+            }
+        });
+
+        return $array;
     }
 
     /**
