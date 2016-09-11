@@ -9,7 +9,6 @@ use Symfony\Component\Yaml\Yaml;
  * This formatter is specially designed to make logs more human-friendly in the
  * development environment. It takes all the log records and processed them in
  * batch to perform advanced tasks (such as combining similar consecutive logs).
- *
  */
 class EasyLogFormatter implements FormatterInterface
 {
@@ -32,7 +31,7 @@ class EasyLogFormatter implements FormatterInterface
     {
         throw new \RuntimeException(
             'The method "format()" should never be called (call "formatBatch()" instead). '
-            . 'Please read EasyLogHandler README instructions to learn how to configure and use it.'
+            .'Please read EasyLogHandler README instructions to learn how to configure and use it.'
         );
     }
 
@@ -412,7 +411,7 @@ class EasyLogFormatter implements FormatterInterface
             'CRITICAL' => '*** CRITICAL ERROR *** ==> ',
         );
 
-        return array_key_exists($level, $levelLabels) ? $levelLabels[$level] : $level. ' ';
+        return array_key_exists($level, $levelLabels) ? $levelLabels[$level] : $level.' ';
     }
 
     /**
@@ -466,7 +465,7 @@ class EasyLogFormatter implements FormatterInterface
 
         if (isset($record['extra']) && !empty($record['extra'])) {
             // don't display the extra information when it's identical to the previous log record
-            $previousRecordExtra = isset($records[$currentRecordIndex-1]) ? $records[$currentRecordIndex-1]['extra'] : null;
+            $previousRecordExtra = isset($records[$currentRecordIndex - 1]) ? $records[$currentRecordIndex - 1]['extra'] : null;
             if ($record['extra'] !== $previousRecordExtra) {
                 $recordAsString .= $this->formatExtra($record).PHP_EOL;
             }
@@ -476,7 +475,7 @@ class EasyLogFormatter implements FormatterInterface
     }
 
     /**
-     * @param array $trace
+     * @param array  $trace
      * @param string $prefix
      *
      * @return string
@@ -607,7 +606,7 @@ class EasyLogFormatter implements FormatterInterface
 
         // remove the trailing PHP_EOL (and add it back afterwards) to avoid formatting issues
         $addTrailingNewline = false;
-        if ('' === $textLines[count($textLines)-1]) {
+        if ('' === $textLines[count($textLines) - 1]) {
             array_pop($textLines);
             $addTrailingNewline = true;
         }
@@ -632,7 +631,7 @@ class EasyLogFormatter implements FormatterInterface
      * Turns any DateTime object present in the given array into a string
      * representation of that date and time.
      *
-     * @param  array $array
+     * @param array $array
      *
      * @return array
      */
