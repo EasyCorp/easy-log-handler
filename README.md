@@ -138,6 +138,7 @@ services:
     # ...
     easycorp.easylog.handler:
         class: EasyCorp\EasyLog\EasyLogHandler
+        public: false
         arguments:
             - '%kernel.logs_dir%/%kernel.environment%.log'
 ```
