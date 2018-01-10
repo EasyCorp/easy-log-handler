@@ -382,13 +382,14 @@ class EasyLogFormatter implements FormatterInterface
      *
      * @return string
      */
-    private function formatSerializedObject($objectString) {
+    private function formatSerializedObject($objectString)
+    {
         $objectPrefixLength = strlen(self::PHP_SERIALIZED_OBJECT_PREFIX);
         $objectStart = strpos($objectString, self::PHP_SERIALIZED_OBJECT_PREFIX) + $objectPrefixLength;
         $beforePrefix = substr($objectString, 0, $objectStart - $objectPrefixLength);
         $objectAsString = print_r(unserialize(substr($objectString, $objectStart)), true);
 
-        return $beforePrefix . $objectAsString;
+        return $beforePrefix.$objectAsString;
     }
 
     /**
