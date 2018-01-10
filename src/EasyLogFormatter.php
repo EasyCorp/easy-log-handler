@@ -23,6 +23,11 @@ class EasyLogFormatter implements FormatterInterface
     private $prefixLength = 2;
 
     /**
+     * @var string
+     */
+    const PHP_SERIALIZED_OBJECT_PREFIX = '- !php/object:';
+
+    /**
      * @param array $record
      *
      * @throws \RuntimeException
@@ -360,11 +365,31 @@ class EasyLogFormatter implements FormatterInterface
         $context = $this->filterVariablesUsedAsPlaceholders($record['message'], $record['context']);
         $context = $this->formatDateTimeObjects($context);
 
-        $contextAsString = Yaml::dump($context, $this->getInlineLevel($record), $this->prefixLength);
+        $contextAsString = Yaml::dump($context, $this->getInlineLevel($record), $this->prefixLength, false, true);
+
+        if (substr($contextAsString, strpos($contextAsString, self::PHP_SERIALIZED_OBJECT_PREFIX), strlen(self::PHP_SERIALIZED_OBJECT_PREFIX)) === self::PHP_SERIALIZED_OBJECT_PREFIX) {
+            $contextAsString = $this->formatSerializedObject($contextAsString);
+        }
+
         $contextAsString = $this->formatTextBlock($contextAsString, '--> ');
         $contextAsString = rtrim($contextAsString, PHP_EOL);
 
         return $contextAsString;
+    }
+
+    /**
+     * @param $objectString
+     *
+     * @return string
+     */
+    private function formatSerializedObject($objectString)
+    {
+        $objectPrefixLength = strlen(self::PHP_SERIALIZED_OBJECT_PREFIX);
+        $objectStart = strpos($objectString, self::PHP_SERIALIZED_OBJECT_PREFIX) + $objectPrefixLength;
+        $beforePrefix = substr($objectString, 0, $objectStart - $objectPrefixLength);
+        $objectAsString = print_r(unserialize(substr($objectString, $objectStart)), true);
+
+        return $beforePrefix.$objectAsString;
     }
 
     /**
