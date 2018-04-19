@@ -364,8 +364,9 @@ class EasyLogFormatter implements FormatterInterface
     {
         $context = $this->filterVariablesUsedAsPlaceholders($record['message'], $record['context']);
         $context = $this->formatDateTimeObjects($context);
+        $context = $this->formatThrowableObjects($context);
 
-        $contextAsString = Yaml::dump($context, $this->getInlineLevel($record), $this->prefixLength, false, true);
+        $contextAsString = Yaml::dump($context, $this->getInlineLevel($record), $this->prefixLength, Yaml::DUMP_OBJECT);
 
         if (substr($contextAsString, strpos($contextAsString, self::PHP_SERIALIZED_OBJECT_PREFIX), strlen(self::PHP_SERIALIZED_OBJECT_PREFIX)) === self::PHP_SERIALIZED_OBJECT_PREFIX) {
             $contextAsString = $this->formatSerializedObject($contextAsString);
@@ -375,6 +376,43 @@ class EasyLogFormatter implements FormatterInterface
         $contextAsString = rtrim($contextAsString, PHP_EOL);
 
         return $contextAsString;
+    }
+
+    /**
+     * Turns any Throwable object present in the given array into a string
+     * representation. If the object cannot be serialized, an approximative
+     * representation of the object is given instead.
+     *
+     * @param array $array
+     *
+     * @return array
+     */
+    private function formatThrowableObjects(array $array): array
+    {
+        array_walk_recursive($array, function (&$value) {
+            if ($value instanceof \Throwable) {
+                try {
+                    $value = serialize($value);
+                } catch (\Throwable $throwable) {
+                    $value = $this->formatThrowable($value);
+                }
+            }
+        });
+
+        return $array;
+    }
+
+    private function formatThrowable(Throwable $throwable): array
+    {
+        return [
+            'class' => get_class($throwable),
+            'message' => $throwable->getMessage(),
+            'code' => $throwable->getCode(),
+            'file' => $throwable->getFile(),
+            'line' => $throwable->getLine(),
+            'trace' => $throwable->getTraceAsString(),
+            'previous' => $throwable->getPrevious() ? $this->formatThrowable($throwable->getPrevious()) : null,
+        ];
     }
 
     /**
