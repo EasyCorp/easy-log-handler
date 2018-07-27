@@ -387,7 +387,7 @@ class EasyLogFormatter implements FormatterInterface
      *
      * @return array
      */
-    private function formatThrowableObjects(array $array): array
+    private function formatThrowableObjects(array $array)
     {
         array_walk_recursive($array, function (&$value) {
             if ($value instanceof \Throwable) {
@@ -402,7 +402,7 @@ class EasyLogFormatter implements FormatterInterface
         return $array;
     }
 
-    private function formatThrowable(\Throwable $throwable): array
+    private function formatThrowable(\Throwable $throwable)
     {
         return [
             'class' => get_class($throwable),
