@@ -122,7 +122,7 @@ Installation
 This project is distributed as a PHP package instead of a Symfony bundle, so you just need to require the project with [Composer](https://getcomposer.org):
 
 ```bash
-$ composer require easycorp/easy-log-handler
+$ composer require --dev easycorp/easy-log-handler
 ```
 
 Configuration and Usage
@@ -131,6 +131,19 @@ Configuration and Usage
 ### Step 1
 
 Define a new service in your application for this log handler:
+
+Newer Symfony version:
+
+```yaml
+# config/packages/dev/easy_log_handler.yaml
+services:
+    EasyCorp\EasyLog\EasyLogHandler:
+        public: false
+        arguments: ['%kernel.logs_dir%/%kernel.environment%.log']
+
+```
+
+Older Symfony version:
 
 ```yaml
 # app/config/services.yml
@@ -145,7 +158,27 @@ services:
 
 ### Step 2
 
-Update your Monolog configuration in the `dev` environment to define a buffered handler that wraps this new handler service (keep reading to understand why). You can safely copy+paste this configuration:
+Update your Monolog configuration in the `dev` environment to define a buffered handler
+that wraps this new handler service (keep reading to understand why).
+You can safely copy+paste this configuration:
+
+Newer Symfony version:
+
+```yaml
+# config/packages/dev/monolog.yaml
+monolog:
+    handlers:
+        buffered:
+            type:     buffer
+            handler:  easylog
+            channels: ['!event']
+            level:    debug
+        easylog:
+            type: service
+            id:   EasyCorp\EasyLog\EasyLogHandler
+```
+
+Older Symfony version:
 
 ```yaml
 # app/config/config_dev.yml
